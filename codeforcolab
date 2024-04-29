@@ -1,0 +1,87 @@
+#code for primer search
+import pandas as pd
+#INPUT PATH
+path = str(input('Path: '))
+#read
+jwlib = pd.read_excel(path, sheet_name = 'JW Primer Library')
+iklib = pd.read_excel(path, sheet_name = 'IK Primer')
+#initialize
+ikname = list(iklib['NAME'])
+ikseq  = list(iklib['sequence'])
+ikdesc = list(iklib['Description'])
+
+jwnum  = list(jwlib['Number'])
+jwseq  = list(jwlib['Sequence'])
+jwdesc = list(jwlib['Primer'])
+#clean jwprimer
+hits = []
+for i in range (0, len(jwseq)):
+    tempseq  = str(jwseq[i])
+    tempseq  = tempseq.upper()
+    tempseq  = tempseq.replace(' ', '')
+    jwseq[i] = tempseq
+#clean ikprimer
+for i in range(0, len(ikseq)):
+    tempseq2 = str(ikseq[i])
+    tempseq2 = tempseq2.upper()
+    tempseq2 = tempseq2.replace(' ', '')
+    ikseq[i] = tempseq2
+#INPUT SEQUENCE
+seq = str(input('enter sequence: '))
+#clean seq, initialize loop
+seq = seq.upper()
+seq = seq.replace(' ', '')
+hits = [] #IDs of all instances
+desc = [] #primer description if there is one
+seqs = [] #primer sequence
+#save reverse sequence
+ikseqr = []
+for i in range (0, len(ikseq)):
+    temp = ikseq[i]
+    temp1 = temp[::-1]
+    ikseqr.append(temp1)
+jwseqr = []
+for i in range (0, len(jwseq)):
+    temp2 = jwseq[i]
+    temp3 = temp2[::-1]
+    jwseqr.append(temp3)
+#look for exact matches
+for i in range (0, len(ikseq)): #IK
+      if ikseq[i] in seq or ikseqr[i] in seq:
+          hits.append(ikname[i])
+          desc.append(ikdesc[i])
+          seqs.append(ikseq[i])
+for i in range (0, len(jwseq)): #JW
+      if jwseq[i] in seq or jwseqr[i] in seq:
+          hits.append(jwnum[i])
+          desc.append(jwdesc[i])
+          seqs.append(jwseq[i])
+#look for partial matches
+par = str(input('Exact Match? Type "y" or "n": '))
+if par == 'y' or par == 'Y':
+  pass
+if par == 'n' or par == 'N':
+  for i in range (0, len(ikseq)): #IK
+    ikparseq = ikseq[i]
+    ikparseq = ikparseq[0:18]
+    ikparseqr = ikseqr[i]
+    ikparseqr = ikparseqr[0:18]
+    if ikparseq in seq or ikparseqr in seq:
+        hits.append(ikname[i])
+        desc.append(ikdesc[i])
+        seqs.append(ikseq[i])
+  for i in range (0, len(jwseq)): #JW
+    jwparseq = jwseq[i]
+    jwparseq = jwparseq[0:18]
+    jwparseqr = jwseqr[i]
+    jwparseqr = jwparseqr[0:18]
+    if jwparseq in seq or jwparseqr in seq:
+        hits.append(jwnum[i])
+        desc.append(jwdesc[i])
+        seqs.append(jwseq[i])
+#display as dataframe
+df1 = pd.DataFrame(desc, columns = ['Description'])
+df2 = pd.DataFrame(hits, columns = ['ID'])
+df3 = pd.DataFrame(seqs, columns = ['Sequence'])
+df  = pd.concat([df2, df3, df1], axis = 1)
+display(df)
